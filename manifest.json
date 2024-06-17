@@ -1,0 +1,27 @@
+{
+    "name": "Edge Selector Extension v2",
+    "description": "Edge extension to find ProductName, OrderTotal Selectors",
+    "version": "1.0",
+    "manifest_version": 3,
+    "action": {
+        "default_title": "Selector Extension v2",
+        "default_popup": "popup/popup.html",
+        "default_icon": {
+            "16": "icons/icon.png"
+        }
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": [
+        "notifications",
+        "activeTab",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>"
+    ],
+    "host_permissions": [
+        "https://*/*",
+        "http://*/*"
+    ]
+}
