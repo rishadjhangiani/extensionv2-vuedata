@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title></title>
-    </head>
-    <body>
-        <h3>Enter JSON File</h3>
-        <input id="file-input" type ="file" accept=".json"/>
-        <script src="popup/popup.js"></script>
-        <button id="submit">submit file</button>
-    </body>
+<head>
+    <title>JSON File Uploader</title>
+</head>
+<body>
+    <!--<h3>Enter JSON File</h3>
+    <input id="fileInput" type="file" accept=".json"/>
+    <button id="submit">submit</button>
+    <div id="output"></div>-->
+    <form id="upload">
+        <label for="file">file to upload</label>
+        <input type="file" id="file" accept=".json">
+        <button>upload</button>
+    </form>
+    <div id="output"></div>
+    <script src="popup.js"></script>
+</body>
 </html>

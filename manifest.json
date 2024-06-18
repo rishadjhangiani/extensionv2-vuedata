@@ -10,24 +10,13 @@
             "16": "icons/icon.png"
         }
     },
-    "background": {
-        "service_worker": "background/background.js"
-    },
     "permissions": [
         "storage",
         "notifications",
         "activeTab",
         "webRequest",
-        "webRequestBlocking",
-        "<all_urls>",
         "scripting",
         "declarativeNetRequest"
-    ],
-    "content-scripts": [
-        {
-            "matches": ["<all_urls"],
-            "js": ["content/content.js"]
-        }
     ],
     "host_permissions": [
         "https://*/*",

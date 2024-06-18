@@ -1,28 +1,27 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('fileInput');
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("DOM fully loaded and parsed");
+    
+    let form = document.getElementById("upload");
+    let file = document.getElementById("file");
+    let output = document.getElementById("output");
 
-    fileInput.addEventListener('change', handleFileUpload);
+    function logFile (event) {
+        let str = event.target.result;
+        let json = JSON.parse(str);
+        console.log('string', str);
+        console.log('json', json);
+
+        output.textContent = JSON.stringify(json, null, 2);
+    }
+
+    function handleSubmit (event) {
+        event.preventDefault();
+        if (!file.value.length) return;
+        let reader = new FileReader();
+        reader.onload = logFile;
+        reader.readAsText(file.files[0]);
+    }
+
+    form.addEventListener('submit', handleSubmit);
 });
 
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/json') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const jsonContent = JSON.parse(e.target.result);
-                storeInMap(jsonContent);
-            } catch (error) {
-                console.error('Error parsing JSON file:', error);
-            }
-        };
-        reader.readAsText(file);
-    } else {
-        console.error('Please upload a valid JSON file.');
-    }
-}
-
-function storeInMap(jsonContent) {
-    const dataMap = new Map(Object.entries(jsonContent));
-    console.log('Data stored in map:', dataMap);
-}
