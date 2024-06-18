@@ -1,0 +1,15 @@
+{
+    "DomainName": "target.com",
+    "CheckoutPage" : [
+        {
+            "OrderTotalDataElementSelector": "[data-test='cart-summary-total']",
+            "CheckoutPageUrl": "/checkout",
+            "OrderSubTotalElementSelector": "[data-test='cart-summary-subTotal']",
+            "CartSelectors": {
+              "ProductImageSelector": "[class*='CheckoutStepContainer'] img"
+            },
+            "PageType": "CheckoutPage"
+          } 
+    ]
+    
+}

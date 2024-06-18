@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    chrome.storage.local.get(['productData'], function(result) {
-        document.getElementById('data').innerText = JSON.stringify
-    })
-})
+document.getElementById('submit').addEventListener('click', () => {
+    //read in file
+    //store values in key value map/data structure
+    //
+});
