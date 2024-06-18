@@ -11,14 +11,22 @@
         }
     },
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "background/background.js"
     },
     "permissions": [
         "notifications",
         "activeTab",
         "webRequest",
         "webRequestBlocking",
-        "<all_urls>"
+        "<all_urls>",
+        "scripting",
+        "declarativeNetRequest"
+    ],
+    "content-scripts": [
+        {
+            "matches": ["<all_urls"],
+            "js": ["content/content.js"]
+        }
     ],
     "host_permissions": [
         "https://*/*",
