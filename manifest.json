@@ -1,24 +1,27 @@
 {
-    "manifest_version": 2,
-    "name": "Edge Extension V3",
-    "version": "1.0",
-    "permissions": [
-      "webRequest",
-      "webRequestBlocking",
-      "*://*/*",
-      "activeTab"
-    ],
-    "background": {
-      "scripts": ["background.js"],
-      "persistent": true
-    },
-    "browser_action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
-      }
+  "manifest_version": 2,
+  "name": "Edge Extension V3",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "https://www.bing.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
     }
+  },
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
   }
-  
+}

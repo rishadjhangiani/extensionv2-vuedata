@@ -4,15 +4,12 @@
     <title>JSON File Uploader</title>
 </head>
 <body>
-    <!--<h3>Enter JSON File</h3>
-    <input id="fileInput" type="file" accept=".json"/>
-    <button id="submit">submit</button>
-    <div id="output"></div>-->
     <form id="upload">
-        <label for="file">file to upload</label>
+        <label for="file">File to upload:</label>
         <input type="file" id="file" accept=".json">
-        <button>upload</button>
+        <button type="button" id="submit">Upload</button>
     </form>
+    <div id="message"></div>
     <div id="output"></div>
     <script src="popup.js"></script>
 </body>
