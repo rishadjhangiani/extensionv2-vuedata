@@ -2,6 +2,17 @@ const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 const targetUrl = 'https://www.bing.com/api/shopping/v1/item/search?appid=67220BD2169C2EA709984467C21494086DF8CA85&features=persnlcashback&sf=cashback1';
 const url = proxyUrl + targetUrl;
 
+// TODO: fix html, make it detachable (close button), highlight the elemnts
+// TODO: everytime the extension is clicked, i dont wanna keep making the api call
+// key, value --> key is domain name + value is api call object
+// seonc pdart --> using local storage
+// TODO: make caching; local storage for extension so that we dont make the api call every day [caching timeline like 2 days]
+     // --> figure out how i can configure the caching timeline [another page that i can change the api call timeline]
+// TODO: say that this is not checkout url + show what the matching urls are
+// TODO: if any info is null, local storage check if possible
+// TODO: connecting to kusto table
+
+
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     let tabUrl = new URL(tabs[0].url);
     let domain = tabUrl.hostname;
@@ -78,17 +89,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 //find order total
                 if (matchingPage.orderTotalDataElementSelector) {
                     orderTotalSelector = matchingPage.orderTotalDataElementSelector;
-
-                    if (orderTotalSelector.includes(',')) {
-                        let totalSelectors = orderTotalSelector.split(',');
-                        totalSelectors.forEach(selector => {
-                            console.log(selector);
-                        });
-                    } else {
-                        console.log(orderTotalSelector);
-                    }
+                    getSelectorInnerText(orderTotalSelector, 'order-total');
                 } else {
-                    orderTotalSelector = null;
+                    document.getElementById('order-total').innerText = 'No order total selector found';
                     console.log("no order total selector found");
                 }
 
@@ -99,28 +102,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                         productNameSelector = matchingPage.cartSelectors.productTitleSelector;
                     }
 
-                    if (productNameSelector.includes(',')) {
-                        let nameSelectors = productNameSelector.split(',');
-                        nameSelectors.forEach(selector => {
-                            console.log(selector);
-                        });
-                    } else {
-                        console.log(productNameSelector);
-                    }
+                    getSelectorInnerText(productNameSelector, 'product-names');
                 } else {
-                    productNameSelector = null;
                     console.log("no product name selector found");
+                    document.getElementById('product-names').innerText = 'No product name selector found';
                 }
-
-
-                // print found selectors to popup
-
-
-
-
-                document.getElementById('order-total').innerText = orderTotalSelector;
-                document.getElementById('product-names').innerText = productNameSelector;
-
 
             } else {
                 console.log("no checkout page found");
@@ -136,3 +122,28 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             document.getElementById('product-names').textContent = 'Error fetching data';
         });
 });
+
+
+function getSelectorInnerText(selectors, elementId) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.executeScript(tabs[0].id, {
+            code: `(${function(selectors) {
+                let selectorArray = selectors.includes(',') ? selectors.split(',').map(sel => sel.trim()) : [selectors]; 
+                //if multiple selectors, iterate through until one works + returns non-null innerText!
+                for (let selector of selectorArray) {
+                    let element = document.querySelector(selector);
+                    if (element && element.innerText) {
+                        return element.innerText;
+                    }
+                }
+                return 'all selectors are incorrect or elements not found';
+            }})(${JSON.stringify(selectors)})`
+        }, (results) => {
+            if (results && results[0]) {
+                document.getElementById(elementId).textContent = results[0];
+            } else {
+                document.getElementById(elementId).textContent = 'error retrieving data';
+            }
+        });
+    });
+}
