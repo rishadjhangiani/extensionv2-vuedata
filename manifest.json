@@ -1,25 +1,29 @@
-{
+
+  {
     "manifest_version": 2,
     "name": "Edge Extension V3",
     "version": "1.0",
     "permissions": [
       "webRequest",
-        "webRequestBlocking",
-        "*://*/*",
-        "activeTab",
-        "tabs",
-        "storage"
+      "webRequestBlocking",
+      "storage",
+      "activeTab",
+      "tabs",
+      "https://*/",
+      "http://*/"
     ],
-    "background": {
-      "scripts": ["background.js"]
-    },
+    "content_security_policy": "script-src 'self' blob: filesystem:; object-src 'self'",
     "browser_action": {
       "default_popup": "popup/popup.html",
       "default_icon": {
-        "16": "icons/icon.png",
-        "48": "icons/icon.png",
-        "128": "icons/icon.png"
+        "16": "icon/icon.png",
+        "48": "icon/icon.png",
+        "128": "icon/icon.png"
       }
-    }
+    },
+    "web_accessible_resources": [
+      "popup/window.html",
+      "popup/window.js"
+    ]
   }
   
