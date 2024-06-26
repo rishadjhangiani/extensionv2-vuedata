@@ -1,6 +1,10 @@
-const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+console.log('Chrome Storage:', chrome.storage); // Add this line to check if chrome.storage is defined
+
+
+const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // TODO: set up a proxy server in node js (after local storage)
 const targetUrl = 'https://www.bing.com/api/shopping/v1/item/search?appid=67220BD2169C2EA709984467C21494086DF8CA85&features=persnlcashback&sf=cashback1';
 const url = proxyUrl + targetUrl;
+const STORAGE_EXPIRATION_DATE = 2;
 
 // TODO: fix html, make it detachable (close button), highlight the elemnts
 // TODO: everytime the extension is clicked, i dont wanna keep making the api call
@@ -12,22 +16,51 @@ const url = proxyUrl + targetUrl;
 // TODO: if any info is null, local storage check if possible
 // TODO: connecting to kusto table
 
+document.getElementById('detachBtn').addEventListener('click', function() {
+    // Open a new window with the same content as the popup
+    const popupUrl = chrome.runtime.getURL('popup/popup.html');
+    chrome.windows.create({
+        url: popupUrl,
+        type: 'popup',
+        width: 400,
+        height: 600
+    });
+});
 
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     let tabUrl = new URL(tabs[0].url);
     let domain = tabUrl.hostname;
     let path = tabUrl.pathname;
+    console.log(tabUrl);
+    const storageKey = `${domain}${path}`;
 
     let parts = domain.split('.');
-    //split at dot so like if www.example or pay.ebay
-
     if (parts.length > 2) {
-        //if there are multiple parts
         domain = parts.slice(parts.length - 2).join('.');
     }
-
     document.getElementById('domain-name').textContent = domain;
 
+    chrome.storage.local.get([storageKey], function(result) {
+        const now = Date.now();
+        if (result[storageKey]) {
+            const { timestamp, data } = result[storageKey];
+            if (now - timestamp < STORAGE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000) {
+                console.log('Data found in storage');
+                const { ProductNames, OrderTotal } = data;
+                document.getElementById('order-total').textContent = OrderTotal;
+                document.getElementById('product-names').textContent = ProductNames.join(', ');
+                return;
+            } else {
+                console.log('data expired, making API call');
+                chrome.storage.local.remove(storageKey);
+            }
+        }
+        console.log('didnt find data');
+        makeApiCall(domain, path, storageKey);
+    });
+});
+
+function makeApiCall(domain, path, storageKey) {
     const body = {
         "AgeGroup": 0,
         "IsAADSignedIn": true,
@@ -62,56 +95,65 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             },
             body: JSON.stringify(data)
         });
-        return response.json(); // parses JSON response into native JavaScript objects
+        return response.json();
     }
 
     postData(url, body)
         .then(data => {
-            console.log(data); // JSON data parsed by `response.json()` call
+            console.log(data);
+
             const allCheckoutPages = data.deals.retailerData.allCheckoutPages;
             const allFinalCheckoutPages = data.deals.retailerData.allFinalCheckoutPages;
-            //check if in allCheckoutPages
             let matchingPage = "";
             if (allCheckoutPages.find(page => page.checkoutPageUrl === path && page.pageType === "CheckoutPage")) {
                 matchingPage = allCheckoutPages.find(page => page.checkoutPageUrl === path && page.pageType === "CheckoutPage");
             } else if (allCheckoutPages.find(page => path.startsWith(page.checkoutPageUrl) && page.pageType === "CheckoutPage")) {
                 matchingPage = allCheckoutPages.find(page => path.startsWith(page.checkoutPageUrl) && page.pageType === "CheckoutPage");
-                //check if path has dynbamic parts
             } else {
-                //check if in allFinalCheckoutPages
                 matchingPage = allFinalCheckoutPages.find(page => page.checkoutPageUrl === path);
+            }
+
+            if (!matchingPage) {
+                document.getElementById('domain-name').innerText = 'No Checkout Page Found';
             }
 
             if (matchingPage) {
                 let orderTotalSelector = '';
                 let productNameSelector = '';
-                // all main logic for after finding correct matching page
-                //find order total
                 if (matchingPage.orderTotalDataElementSelector) {
                     orderTotalSelector = matchingPage.orderTotalDataElementSelector;
                     getSelectorInnerText(orderTotalSelector, 'order-total');
                 } else {
                     document.getElementById('order-total').innerText = 'No order total selector found';
-                    console.log("no order total selector found");
                 }
 
-                //find product names
                 if (matchingPage.cartSelectors) {
                     productNameSelector = matchingPage.cartSelectors.productNameSelector;
                     if (!productNameSelector) {
                         productNameSelector = matchingPage.cartSelectors.productTitleSelector;
                     }
-
                     getSelectorInnerText(productNameSelector, 'product-names');
                 } else {
-                    console.log("no product name selector found");
                     document.getElementById('product-names').innerText = 'No product name selector found';
                 }
 
-            } else {
-                console.log("no checkout page found");
-                //throw error that no checkout page was found
+                const productNames = document.getElementById('product-names').textContent.split(', ');
+                const orderTotal = document.getElementById('order-total').textContent;
 
+                const storageData = {
+                    timestamp: Date.now(),
+                    data: {
+                        ProductNames: productNames,
+                        OrderTotal: orderTotal
+                    }
+                };
+
+                chrome.storage.local.set({
+                    [storageKey]: storageData
+                }, function() {
+                    console.log("Data saved to chrome storage");
+                });
+            } else {
                 document.getElementById('order-total').innerText = 'Failed to retrieve the order total.';
                 document.getElementById('product-names').innerText = 'Failed to retrieve product names.';
             }
@@ -121,15 +163,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             document.getElementById('order-total').textContent = 'Error fetching data';
             document.getElementById('product-names').textContent = 'Error fetching data';
         });
-});
-
+}
 
 function getSelectorInnerText(selectors, elementId) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.tabs.executeScript(tabs[0].id, {
             code: `(${function(selectors) {
                 let selectorArray = selectors.includes(',') ? selectors.split(',').map(sel => sel.trim()) : [selectors]; 
-                //if multiple selectors, iterate through until one works + returns non-null innerText!
                 for (let selector of selectorArray) {
                     let element = document.querySelector(selector);
                     if (element && element.innerText) {
