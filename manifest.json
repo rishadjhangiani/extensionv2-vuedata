@@ -1,10 +1,16 @@
 {
   "manifest_version": 2,
-  "name": "Sidebar Extension",
+  "name": "Extension",
   "version": "1.0",
-  "description": "An Edge extension that opens a sidebar.",
+  "description": "Extension Version 1000",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "tabs",
+    "https://*/",
+    "http://*/"
   ],
   "background": {
     "scripts": ["background.js"],
@@ -20,11 +26,13 @@
   "web_accessible_resources": [
     "sidebar.html",
     "sidebar.css",
-    "sidebar.js"
+    "sidebar.js",
+    "domainInfo.js"
   ],
   "icons": {
     "16": "icons/icon.png",
     "48": "icons/icon.png",
     "128": "icons/icon.png"
-  }
+  },
+  "content_security_policy": "script-src 'self' blob: filesystem:; object-src 'self'"
 }
