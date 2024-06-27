@@ -37,19 +37,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             document.getElementById('domain-name').textContent = domain;
             
-            
             // ISSUE: tryna send domain name to window.html 
             chrome.runtime.sendMessage({type: 'domainName', domain: domain}, (response) => {
                 console.log("domain stored in background:", response.status);
             });
 
-        
-
-            // check if domain exists in local storage
+            if (localStorage.getItem(domain)) {
+                // check if domain exists in local storage
+                let data = localStorage.getItem(domain);
+                console.log("in storage!");
+                console.log(data);
+            } else {
+                // if domain does not exist in local storage
+                makeApiCall(domain, path);
+                console.log("not in storage");
+            }
             console.log(domain);
-            makeApiCall(domain, path);
-            // if domain does not exist in local storage
-            
 
             
         });
@@ -87,6 +90,7 @@ function makeApiCall(domain, path) {
     };
 
     postData(url, body).then(response => {
+        localStorage.setItem(domain, JSON.stringify(response));
         console.log(response);
         // Handle the response data as needed
     }).catch(error => {
@@ -104,6 +108,7 @@ async function postData(url = '', data = {}) {
         },
         body: JSON.stringify(data)
     });
+    console.log("store this?");
     console.log(data);
     return response.json(); // parses JSON response into native JavaScript objects
 }
